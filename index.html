@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="אתר מלווה לפרויקט הגמר במגמת העיצוב, יב תשפ״ז: מעבדת חיבורים.">
+<title>מעבדת חיבורים · מלווה לפרויקט הגמר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&display=swap">
+<style>
+/* Layout: a lab notebook on warm paper. A fixed stage rail on the right (dots joined by a line, like the deck's band),
+   a single reading column beside it. The only motif is the connection: two points and the line between them.
+   Neutrals carry the page; one stage colour at a time, used for the dot, the label and the checkbox. */
+:root{
+  --paper:#FAF7F2; --sheet:#FFFFFF; --soft:#F0EBE3; --ink:#1C1A17; --muted:#6B655C; --rule:#DED7CB;
+  --open:#24385A; --harish:#0E6B73; --zria:#2F7A4A; --hibur:#B4462A; --nevia:#8A5A00; --hanza:#5A4A9C;
+  --a-human:#2B5C9E; --a-ai:#A8560A; --a-search:#6B655C; --a-noai:#7A6A0E;
+  --font:"Heebo","Arial Hebrew",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#181715; --sheet:#201E1B; --soft:#292622; --ink:#EFEAE2; --muted:#A9A195; --rule:#3A3631;
+  --open:#A3B6D6; --harish:#6CC3CB; --zria:#86C99C; --hibur:#EE9A80; --nevia:#E3B65C; --hanza:#B5A8EC;
+  --a-human:#8FB5EA; --a-ai:#F0A55A; --a-search:#A9A195; --a-noai:#D6C25A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#181715; --sheet:#201E1B; --soft:#292622; --ink:#EFEAE2; --muted:#A9A195; --rule:#3A3631;
+  --open:#A3B6D6; --harish:#6CC3CB; --zria:#86C99C; --hibur:#EE9A80; --nevia:#E3B65C; --hanza:#B5A8EC;
+  --a-human:#8FB5EA; --a-ai:#F0A55A; --a-search:#A9A195; --a-noai:#D6C25A; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.7;direction:rtl}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:4px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+h1,h2,h3{text-wrap:balance;margin:0;font-weight:600}
+p{margin:0}
+.c{color:var(--c)}
+
+/* ---- shell: rail + column ---- */
+.shell{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;
+  padding-block:0 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-block:36px 24px;max-height:100vh;overflow:auto}
+.brand{display:block;text-decoration:none;margin-bottom:28px}
+.brand b{display:block;font-size:22px;font-weight:600;line-height:1.2}
+.brand span{font-size:14px;color:var(--muted)}
+.links{list-style:none;margin:0 0 30px;padding:0;display:grid;gap:2px}
+.links a{display:block;text-decoration:none;padding:3px 0;font-size:16px;color:var(--muted)}
+.links a[aria-current="page"]{color:var(--ink);font-weight:500}
+.links a[aria-current="page"]::before{content:"";display:inline-block;width:18px;height:2px;background:var(--ink);vertical-align:middle;margin-inline-end:8px}
+.links a:hover{color:var(--ink)}
+
+/* the stage path: neutral, only the current stage in colour */
+.path{list-style:none;margin:0;padding:0;position:relative}
+.path::before{content:"";position:absolute;right:5px;top:10px;bottom:10px;width:1px;background:var(--rule)}
+.path li a{display:flex;gap:12px;align-items:center;text-decoration:none;padding:5px 0;font-size:15px;color:var(--muted);position:relative}
+.path i{width:11px;height:11px;border-radius:50%;border:1px solid var(--muted);background:var(--paper);flex:none}
+.path small{font-size:12px;margin-inline-start:auto;font-variant-numeric:tabular-nums}
+.path a.on{color:var(--c);font-weight:500}
+.path a.on i{background:var(--c);border-color:var(--c);transform:scale(1.25)}
+.rail h4{font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--muted);margin:0 0 8px}
+
+main{padding-top:36px;min-width:0}
+.crumb{font-size:14px;color:var(--muted);margin-bottom:22px}
+.crumb a{color:var(--muted)}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr;gap:0}
+  .rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding-block:12px;border-bottom:1px solid var(--rule);max-height:none;overflow:visible;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}
+  .brand{margin:0}.brand b{font-size:18px}.brand span{display:none}
+  .links{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0}
+  .links a{font-size:15px}
+  .links a[aria-current="page"]::before{width:10px;margin-inline-end:5px}
+  .rail h4,.rail .path{display:none}
+  main{padding-top:24px}
+}
+
+/* ---- type ---- */
+.kicker{font-size:14px;font-weight:500;color:var(--c,var(--muted));display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.kicker::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,var(--muted))}
+.kicker::after{content:"";width:40px;height:1px;background:var(--c,var(--muted))}
+h1{font-size:clamp(34px,5vw,54px);line-height:1.1;letter-spacing:-.01em;margin-bottom:18px}
+h2{font-size:28px;line-height:1.25;margin-bottom:12px}
+h3{font-size:19px;line-height:1.35;margin-bottom:6px}
+.lead{font-size:19px;max-width:62ch;margin-bottom:40px}
+.note{font-size:15px;color:var(--muted);max-width:66ch}
+.label{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:.03em}
+section{margin-bottom:64px}
+
+/* ---- the connection motif ---- */
+.link3{display:grid;grid-template-columns:1fr 1fr 1fr;margin:20px 0 6px;position:relative}
+.link3::before{content:"";position:absolute;top:13px;right:16.66%;left:16.66%;height:2px;background:var(--ink)}
+.link3 div{text-align:center;padding:0 8px;position:relative}
+.link3 i{display:block;width:28px;height:28px;border-radius:50%;margin:0 auto 14px;background:var(--c);box-shadow:0 0 0 6px var(--paper)}
+.link3 div:nth-child(2) i{background:var(--paper);border:2px solid var(--c)}
+.link3 b{display:block;font-size:23px;font-weight:600;line-height:1.2;color:var(--c)}
+.link3 span{font-size:15px;color:var(--muted)}
+.link3 .op{position:absolute;top:-2px;font-size:22px;font-weight:600;background:var(--paper);padding:0 6px;color:var(--ink)}
+@media (max-width:620px){
+  .link3{grid-template-columns:1fr;gap:22px}
+  .link3::before{top:14px;bottom:40px;right:13px;left:auto;width:2px;height:auto}
+  .link3 div{text-align:right;padding:0 46px 0 0}
+  .link3 i{position:absolute;right:0;top:0;margin:0}
+  .link3 .op{display:none}
+}
+
+/* observe -> design pairs */
+.pair{display:grid;grid-template-columns:minmax(0,1fr) 120px minmax(0,1fr);align-items:center;padding:16px 0;border-bottom:1px solid var(--rule)}
+.pair:first-of-type{border-top:1px solid var(--rule)}
+.pair .wire{height:2px;background:var(--c);position:relative;margin:0 14px}
+.pair .wire::before,.pair .wire::after{content:"";position:absolute;top:-5px;width:12px;height:12px;border-radius:50%}
+.pair .wire::before{right:-6px;border:2px solid var(--c);background:var(--paper)}
+.pair .wire::after{left:-6px;background:var(--c)}
+.pair small{display:block;font-size:13px;color:var(--muted)}
+@media (max-width:620px){.pair{grid-template-columns:1fr;gap:6px}.pair .wire{width:60px;margin:6px 6px}}
+
+/* ---- index of connections ---- */
+.index{list-style:none;margin:0;padding:0;columns:2;column-gap:40px}
+.index li{break-inside:avoid;border-top:1px solid var(--rule)}
+.index a{display:grid;grid-template-columns:26px 1fr;gap:4px 10px;text-decoration:none;padding:14px 0}
+.index .n{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:3px}
+.index b{font-size:19px;font-weight:600}
+.index .d{grid-column:2;font-size:15px;color:var(--muted)}
+.index a:hover b{color:var(--hibur)}
+@media (max-width:700px){.index{columns:1}}
+
+/* ---- companion ---- */
+.rules{list-style:none;counter-reset:r;margin:0 0 40px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0 36px}
+.rules li{counter-increment:r;display:grid;grid-template-columns:34px 1fr;padding:12px 0;border-top:1px solid var(--ink);font-size:16px}
+.rules li::before{content:counter(r);font-weight:600;font-size:15px}
+@media (max-width:700px){.rules{grid-template-columns:1fr}}
+.dots{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 6px;max-width:560px}
+.dots i{width:10px;height:10px;border-radius:50%;border:1px solid var(--muted)}
+.dots i.on{background:var(--ink);border-color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;color:var(--muted);margin:14px 0 48px}
+.tagx{font-size:12px;font-weight:500;border:1px dashed var(--muted);padding:0 7px;color:var(--muted);white-space:nowrap}
+
+.stage{scroll-margin-top:24px;margin-bottom:76px}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin:18px 0 26px;padding:16px 0;border-block:1px solid var(--rule)}
+.facts p{font-size:15px}
+@media (max-width:760px){.facts{grid-template-columns:1fr 1fr}}
+@media (max-width:440px){.facts{grid-template-columns:1fr}}
+
+.tasks{list-style:none;margin:0 0 22px;padding:0}
+.tasks li{border-bottom:1px solid var(--rule)}
+.tasks label{display:grid;grid-template-columns:24px 84px minmax(0,1fr) 92px;gap:12px;align-items:start;padding:14px 0;cursor:pointer}
+.tasks input{appearance:none;width:20px;height:20px;border:1.5px solid var(--muted);border-radius:50%;margin:3px 0 0;cursor:pointer;display:grid;place-items:center}
+.tasks input:checked{background:var(--c);border-color:var(--c)}
+.tasks input:checked::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--paper)}
+.sn{font-size:15px;font-weight:500;color:var(--c);font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:1px}
+.tt b{font-weight:500;font-size:17px}
+.tt .tagx{margin-inline-start:8px}
+.tt p{font-size:15px;color:var(--muted)}
+.hrs{font-size:14px;color:var(--muted);text-align:left;font-variant-numeric:tabular-nums;padding-top:2px}
+.tasks input:checked ~ .tt{color:var(--muted)}
+.tasks input:checked ~ .tt b{text-decoration:line-through;text-decoration-color:var(--c)}
+@media (max-width:560px){.tasks label{grid-template-columns:24px minmax(0,1fr);gap:4px 12px}.sn,.tt,.hrs{grid-column:2}.hrs{text-align:right}}
+
+.mark{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--rule)}
+.mark .label{color:var(--c);padding-top:2px}
+@media (max-width:560px){.mark{grid-template-columns:1fr;gap:2px}}
+.stop{margin:18px 0;padding:12px 16px;background:var(--soft);font-size:16px}
+.stop b{font-weight:600;color:var(--c)}
+
+/* prompt: a sheet of paper pinned to the page */
+.prompt{background:var(--sheet);border:1px solid var(--rule);margin-top:26px;position:relative}
+.prompt header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 18px 0;flex-wrap:wrap}
+.prompt header b{display:block;font-size:16px;font-weight:600}
+.prompt header span{font-size:14px;color:var(--muted)}
+.prompt p{padding:12px 18px 18px;font-size:16px;line-height:1.75}
+.prompt .fill{background:var(--soft);padding:0 4px}
+.copy{font:inherit;font-size:14px;font-weight:500;padding:5px 16px;background:transparent;color:var(--ink);border:1.5px solid var(--ink);border-radius:999px;cursor:pointer}
+.copy:hover{background:var(--ink);color:var(--paper)}
+
+/* journal */
+.ashaf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:10px 0 44px}
+.ashaf div{border-top:2px solid var(--ink);padding-top:12px}
+.ashaf b{font-size:56px;font-weight:600;line-height:1;display:block;color:var(--hibur)}
+.ashaf strong{font-weight:500;font-size:18px;display:block;margin:6px 0 4px}
+.ashaf p{font-size:15px;color:var(--muted)}
+@media (max-width:620px){.ashaf{grid-template-columns:1fr;gap:18px}}
+.srcs{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:15px;margin-bottom:16px}
+.srcs span{display:flex;align-items:center;gap:8px}
+.srcs i{width:10px;height:10px;border-radius:50%}
+.tw{overflow-x:auto;margin-bottom:14px}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:600px}
+th,td{padding:10px 12px 10px 0;text-align:right;vertical-align:top;border-bottom:1px solid var(--rule)}
+th{font-size:13px;font-weight:500;color:var(--muted);border-bottom:1px solid var(--ink)}
+.src{white-space:nowrap;font-weight:500}
+.src::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-inline-end:6px}
+.src.h{color:var(--a-human)}.src.a{color:var(--a-ai)}.src.s{color:var(--a-search)}.src.n{color:var(--a-noai)}
+.plain{margin:0;padding-inline-start:20px;display:grid;gap:6px;max-width:66ch}
+
+/* connection page */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 44px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.grid2 > div{border-top:1px solid var(--ink);padding-top:14px}
+.grid2 .where{font-size:13px;color:var(--muted);margin-bottom:10px}
+.grid2 ul{margin:0;padding-inline-start:18px;display:grid;gap:4px}
+.words{display:flex;flex-wrap:wrap;gap:6px 8px}
+.words span{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:2px 12px;font-size:15px}
+.srclist{list-style:none;margin:0;padding:0}
+.srclist li{padding:12px 0;border-bottom:1px solid var(--rule)}
+.srclist a,.srclist b{font-weight:500}
+.srclist span{display:block;font-size:15px;color:var(--muted)}
+.pn{display:flex;justify-content:space-between;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--rule);flex-wrap:wrap}
+.pn a{text-decoration:none;font-weight:500}
+.pn a:hover{text-decoration:underline}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cards2 a{display:block;text-decoration:none;border-top:2px solid var(--c);padding-top:12px}
+.cards2 a b{display:block;font-size:22px;font-weight:600;color:var(--c)}
+.cards2 a span{font-size:15px;color:var(--muted)}
+@media (max-width:620px){.cards2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <a class="brand" href="#home"><b>מעבדת חיבורים</b><span>פרויקט גמר יב · תשפ״ז</span></a>
+    <ul class="links" aria-label="ניווט ראשי">
+      <li><a href="#home" data-r="home">הבית</a></li>
+      <li><a href="#tik" data-r="tik">מלווה לתיק</a></li>
+      <li><a href="#hiburim" data-r="hiburim">11 החיבורים</a></li>
+      <li><a href="#ashaf" data-r="ashaf">יומן אש״ף</a></li>
+    </ul>
+    <h4>השלבים בתיק</h4>
+    <ul class="path" id="path"></ul>
+  </aside>
+  <main id="app"></main>
+</div>
+
+<script>
+/* ---------- content ---------- */
+const STAGES = {
+  open:   {name:"פתיחה", sub:"מעבדת חיבורים", c:"--open"},
+  harish: {name:"חריש", sub:"תשתית עיצוב", c:"--harish"},
+  zria:   {name:"זריעה", sub:"מחקר עיצוב", c:"--zria"},
+  hibur:  {name:"זריעה", sub:"חקר החיבור", c:"--hibur"},
+  nevia:  {name:"נביטה", sub:"רעיון עיצוב", c:"--nevia"},
+  book:   {name:"תיק", sub:"סגירה והגשה", c:"--open"},
+};
+const AI_TOOLS = "ג׳מיני או צ׳אט ג׳י-פי-טי";
+
+// slide items: [id, slide, title, detail, hours, kind]  kind: "x" = explanation slide (deleted before submission), "n" = work slide that moves to the appendices
+const TIK = [
+ {key:"open", title:"פתיחה", weeks:"שבוע 1",
+  know:"מה הנושא השנתי, ומה הנוסחה של הפרויקט.", look:"סוג חיבור אחד או שניים שמסקרנים אתכם.", scope:"שקפי הסבר, נמחקים לפני ההגשה",
+  items:[
+   ["o1","3-7","קוראים יחד את שקפי הפתיחה","מפת הדרך, הנוסחה, איך נראה חיבור, 11 סוגי החיבורים.",2,"x"],
+   ["o2","53","בוחרים דרך עבודה בזוג","אחת מארבע הדרכים, ומחלקים משימות בטבלה.",0.5,""],
+  ]},
+ {key:"harish", title:"חריש: מנושא לאתגר", weeks:"שבועות 1-4",
+  know:"מה מעניין אתכם, ואיזה תחום אחר אפשר לחבר לזה.", look:"בעיה אמיתית מהחיים, ושניים-שלושה מקורות שמראים שהיא קיימת.", scope:"בתיק: עד שני עמודים",
+  items:[
+   ["h1","11-12","מפה אישית לכל אחד","לבד, בגוגל סליידס, לפי הדוגמה בשקף 10. לפחות שישה ענפים, לפחות חמש מילים בכל ענף. צובעים את המילים שהכי מסקרנות.",2.5,"n"],
+   ["h2","13","מה משותף לנו?","מניחים את שתי המפות זו ליד זו. ניגודים שמעניינים את שניכם, ושניים-שלושה סוגי חיבור.",1,"n"],
+   ["h3","14","ספרינט חיבורים","עשר דקות. תופעה מהטבע או מהמדע, איך היא עובדת, ואיזה אתגר מהחיים היא פוגשת.",1,"n"],
+   ["h4","15","שואלים את הבינה: חמישה כיוונים","מעתיקים את הבקשה מהשקף ל"+AI_TOOLS+" ומשלימים. הבינה נותנת כיוונים, לא עובדות.",1,"n"],
+   ["h5","16","הכיוונים שלנו","ציון 1-3 לכל כיוון. בודקים בעצמכם שהבעיה באמת קיימת.",1,"n"],
+   ["h6","17","מפת האתגרים","מפה שנייה: מי, מה, איפה ומתי, למה, ומה תחום הדעת יכול ללמד.",2,"n"],
+   ["h7","18","שישה אתגרים","רושמים מהמפה. עדיין לא בוחרים.",1,"n"],
+   ["h8","19","שניים-שלושה מחקרים או כתבות","רק ממקורות מהימנים. ליד כל מקור: שם, מחבר ותאריך, ומה למדתם.",3,"n"],
+   ["h9","20","בוחרים אתגר אחד","טבלת ציונים לשלושת האתגרים החזקים.",1,"n"],
+   ["h10","21","איפה פוגשים את האתגר?","תמונות מהשטח, כתבות או נתונים. ליד כל אחד: מקור.",1,""],
+   ["h11","22","שתים-עשרה שאלות על האתגר","עדיין לא עונים.",1,"n"],
+   ["h12","23","שלושה ניסוחים לשאלת האתגר","בקוביות: כיצד נוכל ל, פועל, הבעיה, למי, באיזה מצב. בלי הפתרון.",1.5,"n"],
+   ["h13","24","שאלת האתגר שלנו","הניסוח הכי ברור, למה בחרתם בו, ואיפה מופיע בו תחום הדעת.",0.5,""],
+   ["h14","25","מכוון עיצוב","שש התיבות. בתיבה ״המצב היום״: נתונים מלפחות שני מקורות.",2,""],
+   ["h15","26","חמש שאלות למחקר","לכל שאלה: איך נמצא תשובה.",0.5,""],
+   ["h16","27","בוחרים שני מחקרים + הצהרת בינה","מחקר שולחני אחד ומחקר שטח אחד.",0.5,""],
+  ],
+  milestone:["שבוע 4","טופס הצעת מחקר לאישור. וקובעים כבר עכשיו את השיחה עם המורה למקצוע או המומחה, לשבוע 8."],
+  see:"בתיק נשארים שקפים 21 ו-24 עד 27. מפות החשיבה וטבלאות העבודה עוברות לנספחים. בשאלת האתגר רואים גם בעיה מהחיים וגם רמז לתחום האחר.",
+  prompt:{t:"בודקים את שאלת האתגר (שקף 24)", why:"הבינה בודקת ושואלת. היא לא כותבת את השאלה.",
+   p:"אנחנו זוג תלמידים במגמת עיצוב, בשלב החריש של פרויקט הגמר. החיבור שבחרנו: [סוג החיבור]. זו שאלת האתגר שכתבנו: [השאלה]. אל תשכתב אותה ואל תציע פתרונות. אמור לנו אם חסר בה אחד מאלה: בעיה ברורה, קהל יעד מדויק עם גיל, רמז לתחום הדעת האחר. אחר כך שאל אותנו שתי שאלות שיעזרו לנו לדייק אותה בעצמנו."}},
+ {key:"zria", title:"זריעה: ממידע לתובנות", weeks:"שבועות 5-7, ושבועות 11-12",
+  know:"מה כבר ידוע על הבעיה, ומה האנשים באמת צריכים.", look:"מקורות מהימנים, ואנשים מקהל היעד שאפשר לשאול.", scope:"בתיק: 12-15 עמודים, כולל חקר החיבור",
+  items:[
+   ["z1","29","מחקר שולחני","סקירה ספרותית, פתרונות קיימים, ציר זמן או חקר מושג. ליד כל נתון ותמונה: מקור.",5.5,""],
+   ["z2","30","מחקר שולחני: מה למדנו?","מה הפתיע, ומה זה אומר על מה שנעצב.",1.5,""],
+   ["z3","31","מחקר שטח: תכנון","את מי פוגשים, כמה, ומה שואלים. השאלון המלא לנספחים.",2,""],
+   ["z4","32","מחקר שטח: מה גילינו?","יוצאים לשטח ומסכמים. בסקר: לכל שאלה גרף ומסקנה. משפטים חזקים עם שם ותאריך.",6,""],
+   ["z5","40","טבלת תובנות","כל מה שלמדתם, מכל המחקרים, בטבלה אחת.",2,""],
+   ["z6","41-42","פרסונה ומפת אמפתיה","אחת לכל חבר צוות, לפי מה שגיליתם במחקר.",4,""],
+   ["z7","43","לוח השראה + הצהרת בינה","ערכים, צבעים, חומרים, גופנים, ואיך החיבור יופיע בעיצוב.",3,""],
+  ],
+  milestone:["שבוע 6","הסקר נשאר פתוח שבוע. ראיונות ותצפיות יכולים להיות גם מחוץ לשעות השיעור."],
+  see:"כל נתון עומד ליד המקור שלו. בטבלת התובנות, כל שורה נגמרת במשפט ״מה זה אומר על מה שנעצב״. הפרסונה נבנית מאנשים אמיתיים שפגשתם, לא מדמות שהבינה המציאה.",
+  prompt:{t:"בודקים את שאלות הראיון או הסקר (שקף 31)", why:"הבינה מסמנת בעיות. אתם כותבים את השאלות מחדש.",
+   p:"אנחנו מתכננים [ראיון / סקר / תצפית] עם [מי, בלי שמות ופרטים מזהים] לפרויקט גמר בעיצוב. האתגר שלנו: [שאלת האתגר]. אלה השאלות שכתבנו: [השאלות]. אל תכתוב שאלות חדשות במקומן. סמן אילו שאלות סגורות מדי או מכוונות לתשובה מסוימת, ושאל אותנו מה אנחנו הכי רוצים לגלות."}},
+ {key:"hibur", title:"זריעה: חקר החיבור", weeks:"שבועות 7-10",
+  know:"איך התחום האחר עובד: המושגים והחוקים הבסיסיים.", look:"עיקרון אחד מהתחום שאפשר להפוך לרעיון עיצובי.", scope:"דרישת הנושא השנתי: הפרויקט נשען על ידע מתחום דעת נוסף",
+  items:[
+   ["b1","34","ידע מתחום הדעת + שיחה עם מומחה","לומדים את הבסיס ומכינים שלוש-ארבע שאלות. אחרי השיחה: שם, תפקיד, תאריך, ומה למדתם שלא ידעתם.",5,""],
+   ["b2","35","מתבוננים בדוגמה מהעולם","מצלמים או משרטטים דבר אחד מהתחום, ומבינים מה הסוד שלו.",3,""],
+   ["b3","36","מהתבוננות לעיצוב","שלושה עקרונות. לכל אחד: צורה או תהליך, ואיך מתרגמים אותו לעיצוב.",3,""],
+   ["b4","37-39","שלושה פרויקטים לדוגמה","פרויקטים שמממשים חיבור דומה לשלכם. ליד כל תמונה: מאיפה היא.",9,""],
+  ],
+  see:"בשקף 36 יש שלושה עקרונות, וכל אחד מסומן ״צורה״ או ״תהליך״. בשקף 34 מופיעים שם המומחה, התפקיד והתאריך. בכל פרויקט לדוגמה כתוב מה ממנו רלוונטי לכם.",
+  extra:"לכל סוג חיבור יש עמוד משלו באתר, עם מושגים, דוגמאות, מה להתבונן בו ומקורות לפתיחה.",
+  prompt:{t:"מתכוננים לשיחה עם המומחה (שקף 34)", why:"הבינה שואלת מה אתם כבר יודעים. היא לא מחליפה את המומחה.",
+   p:"אנחנו זוג תלמידים במגמת עיצוב. האתגר שלנו: [שאלת האתגר]. החיבור: [סוג החיבור], ותחום הדעת: [התחום]. בעוד שבוע אנחנו נפגשים עם [תפקיד המומחה, בלי שם]. אל תסביר לנו את התחום ואל תציע פתרונות. שאל אותנו ארבע שאלות שיראו לנו מה אנחנו עוד לא יודעים, כדי שנכתוב בעצמנו את השאלות למומחה."}},
+ {key:"nevia", title:"נביטה: הרבה רעיונות, ואז בוחרים", weeks:"שבועות 13-14",
+  know:"שאלת האתגר והתובנות מהמחקר. מהן יוצאים הרעיונות.", look:"כמה שיותר פתרונות שונים, גם משוגעים.", scope:"בתיק: סיכום של עד שלושה עמודים",
+  items:[
+   ["n1","45","כללי העלאת רעיונות","קובעים זמן, לא שופטים, מציירים.",0.5,"x"],
+   ["n2","46-47","בנק רעיונות","24 רעיונות לצוות, בשלוש שיטות שונות. כל רעיון: סקיצה ומשפט הסבר.",5,""],
+   ["n3","48","בוחרים רעיונות","ציון 1-3 בכל שורה, ושלושה ממשיכים. כותבים בכנות גם מה יכול להשתבש.",2,""],
+   ["n4","49","סיכום הנביטה + הצהרת בינה","שניים-שלושה רעיונות: סקיצה, הסבר, ולמה בחרתם בו לפי המחקר.",2,""],
+  ],
+  see:"24 סקיצות, ובראש כל בנק רעיונות רשומה השיטה שבה עבדתם. בטבלת הבחירה רואים גם את החסרונות. ליד כל רעיון בסיכום יש קישור לתובנה מהמחקר.",
+  rule:"כאן הבינה לא מציעה רעיונות. הרעיונות שלכם בלבד.",
+  prompt:{t:"בוחנים רעיון (שקף 48)", why:"שאלה אחת על כל רעיון. בלי רעיונות חדשים.",
+   p:"אנחנו בשלב הנביטה בפרויקט גמר בעיצוב. האתגר שלנו: [שאלת האתגר]. זה הרעיון שלנו במשפט: [הרעיון]. אסור לך להציע רעיונות, שיפורים או דוגמאות למוצרים. שאל אותנו שאלה אחת בלבד שבודקת אם הרעיון מממש את החיבור ל[תחום הדעת], וחכה לתשובה שלנו."}},
+ {key:"book", title:"סגירת התיק", weeks:"לאורך הדרך, ושבוע 16",
+  know:"מה נשאר בתיק, ומה עובר לנספחים.", look:"כל מקור, כל מרואיין וכל שימוש בבינה.", scope:"התיק מוגש למורה בשבוע 16",
+  items:[
+   ["t1","50","ביבליוגרפיה","לפי הדוגמאות בשקף, בסדר האלף-בית. מעדכנים בשבוע 12 ובשבוע 16.",2,""],
+   ["t2","51-52","נספחים ונספח בינה","טופס הצעת המחקר, השאלונים המלאים, מפות החשיבה, הפרומפטים. בנספח הבינה ממלאים לפי יומן אש״ף.",1.5,""],
+   ["t3","54","יומן פרויקט שבועי","שורה אחת בסוף כל שבוע.",0,""],
+   ["t4","8","מבוא","פסקה אחת שמציגה את הפרויקט למי שלא מכיר אותו. כותבים אותה בסוף.",1.5,""],
+   ["t5","2","תוכן העניינים","מעדכנים מספרי עמודים.",0.5,""],
+   ["t6","—","מוחקים את 11 שקפי ההסבר ומייצאים PDF","שקפים 3-7, 9, 10, 28, 33, 44, 45. קובץ ← הורדה ← מסמך PDF.",1,""],
+  ],
+  milestone:["שבוע 12","עצירת ביניים: המורה עוברת על התיק עד כאן."],
+  see:"בתיק אין אף שקף עם הסימון ״שקף הסבר״. ב-PDF העברית והגופנים לא נשברו. ליד כל טקסט או תמונה שהגיעו מבינה כתוב מה שיניתם.",
+  after:"הנצה, פריחה, הכנה להגנה ורפלקציה: במצגת ההגשה, קובץ נפרד בן 18 שקפים."},
+];
+
+const HIBURIM = [
+ {id:"hayim", name:"חיבורים חיים", line:"מנגנונים, צורות ומערכות מהטבע כבסיס לפתרון.", field:"ביולוגיה · ביומימיקרי", teacher:"המורה לביולוגיה",
+  ex:[["עלה הלוטוס: מים ולכלוך מחליקים ממנו","בד למעיל שלא נרטב, משטח שמנקה את עצמו"],["קורי עכביש: חזקים וקלים","גג או מבנה קל וחזק"],["כוורת: הדבורים עובדות יחד","תכנון שכונה, מערכת או קהילה"]],
+  ask:["איפה משהו מתלכלך, מתחמם או מתבזבז בלי צורך?","מה הטבע כבר פתר, שבני אדם עדיין מתקשים בו?","מי סובל מזה, ובאיזה רגע ביום?"],
+  terms:["ביומימיקרי","צורה מול תהליך","מבנה ותפקוד","הסתגלות","מערכת אקולוגית"],
+  look:"עלה, קונכייה, נוצה, זרע שעף ברוח, קן, כוורת. מצלמים מקרוב ומשרטטים את המבנה.",
+  q:"איך הטבע [פועל: מקרר, מנקה, מחבר, מגן]?",
+  words:["ביומימיקרי","חיקוי הטבע בעיצוב","biomimicry design","how does nature + פועל באנגלית"],
+  src:[["AskNature","https://asknature.org","מאגר באנגלית: מחפשים לפי פעולה (לקרר, להיצמד, לסנן) ומקבלים פתרונות מהטבע."],["מכון דוידסון לחינוך מדעי","https://davidson.weizmann.ac.il","כתבות מדע בעברית, ברמה של תיכון."]]},
+ {id:"mehushav", name:"חיבור מחושב", line:"חוקיות מתמטית: גריד, פרופורציה, פרקטלים ודגם.", field:"מתמטיקה", teacher:"המורה למתמטיקה",
+  ex:[["הספירלה של קונכיית הנאוטילוס ויחס הזהב","כיסא ארגונומי, מבנה, קומפוזיציה בכרזה"],["פרקטל: ענף שחוזר על עצמו בקטן","לוגו מודולרי, דגם שגדל ומתכווץ"],["ריצוף שאין בו רווחים","אריזה שלא מבזבזת מקום, דגם לקיר"]],
+  ask:["איפה יש בלגן שסדר יכול לפתור? מדף, תור, שילוט, אריזה.","איפה מתבזבז מקום או חומר?","מה קשה למצוא או לזכור, כי אין בו חוקיות?"],
+  terms:["יחס הזהב","סדרת פיבונאצ׳י","סימטריה","ריצוף (טסלציה)","פרקטל","גריד מודולרי"],
+  look:"כרובית, אצטרובל, חלת דבש, ריצוף ישן, מדרגות. מודדים ומחפשים את החוק שחוזר.",
+  q:"איזה חוק מתמטי נמצא ב[דבר שבחרתם]?",
+  words:["יחס הזהב בעיצוב","ריצוף מתמטי","golden ratio design","tessellation pattern","fractal design"],
+  src:[["Wolfram MathWorld","https://mathworld.wolfram.com","אנציקלופדיה מתמטית באנגלית. לבדוק הגדרה מדויקת של מושג."],["מכון דוידסון לחינוך מדעי","https://davidson.weizmann.ac.il","כתבות מתמטיקה בעברית."]]},
+ {id:"misparim", name:"חיבור למספרים", line:"נתונים כחומר גלם: אינפוגרפיקה והנגשת מידע.", field:"סטטיסטיקה · מדעי המחשב", teacher:"המורה למתמטיקה או למדעי המחשב",
+  ex:[["כמות האוכל שנזרקת בהפסקה, בשבוע אחד","אינפוגרפיקה על הפח עצמו"],["זמני האוטובוסים לבית הספר","מפה שמבינים בשלוש שניות"],["תוצאות סקר שאתם עורכים","כרזה שמשנה התנהגות"]],
+  ask:["איזה מידע חשוב קיים, אבל אף אחד לא מבין אותו?","איפה אנשים מקבלים החלטה בלי לדעת את המספרים?","מה תספרו או תמדדו בעצמכם?"],
+  terms:["סוגי גרפים","מגמה","השוואה","חלק מהשלם","היררכיה של מידע","מקור הנתון"],
+  look:"לוח זמנים, חשבון חשמל, תווית מזון, שלט. מסמנים מה מבינים מיד ומה לא.",
+  q:"מה המספרים אומרים על [הבעיה], ולמי הם לא ברורים?",
+  words:["נתונים על [הנושא] הלמ״ס","אינפוגרפיקה","data visualization","information design"],
+  src:[["הלשכה המרכזית לסטטיסטיקה","https://www.cbs.gov.il","נתונים רשמיים על ישראל, בעברית."],["data.gov.il","https://data.gov.il","מאגרי מידע ממשלתיים פתוחים."],["Our World in Data","https://ourworldindata.org","נתונים עולמיים עם גרפים ומקורות, באנגלית."],["Gapminder","https://www.gapminder.org/tools/","גרפים שזזים לאורך השנים. השראה לאיך מציגים שינוי."],["Information is Beautiful","https://informationisbeautiful.net","השראה לעיצוב של נתונים."]]},
+ {id:"aktivi", name:"חיבורים אקטיביים", line:"חוקי הפיזיקה: תנועה, אור, כוחות ומודולריות.", field:"פיזיקה", teacher:"המורה לפיזיקה",
+  ex:[["אור שעובר במנסרה ונשבר לצבעים","שליטה בצבע במסך ובדפוס, מנורה"],["מנוף: כוח קטן מרים משקל גדול","מוצר שקל להרים או לפתוח"],["חלקים שמתחברים בכמה כיוונים","רהיט או מערכת מודולרית"]],
+  ask:["מה כבד, תקוע או קשה לפתוח?","איפה חסר אור, או יש יותר מדי?","מה צריך לזוז, להתקפל או להשתנות לפי המצב?"],
+  terms:["מנוף","חיכוך","מרכז כובד","שבירת אור","קפיץ ואנרגיה","מודולריות"],
+  look:"מספריים, ידית דלת, צל של חלון, כיסא מתקפל. מבינים איזה כוח פועל ואיפה.",
+  q:"איזה כוח או תופעה פיזיקלית פועלים ב[דבר שבחרתם]?",
+  words:["מנוף בחיי היום יום","שבירת אור","kinetic design","modular design"],
+  src:[["PhET","https://phet.colorado.edu","הדמיות פיזיקה אינטראקטיביות, חלקן בעברית."],["מכון דוידסון לחינוך מדעי","https://davidson.weizmann.ac.il","כתבות פיזיקה בעברית."]]},
+ {id:"enoshi", name:"חיבורים אנושיים", line:"עיצוב שמחבר בין אנשים: נגישות, דורות, שייכות.", field:"סוציולוגיה · פסיכולוגיה", teacher:"המורה לסוציולוגיה או לפסיכולוגיה, או היועצת",
+  ex:[["רשת שורשים: עצים ותיקים מזינים עצים צעירים","תוכנית חונכות לבני נוער עולים"],["כוורת: כל אחד בתפקיד, כולם יחד","מרחב שמזמין עבודה משותפת"],["להקת ציפורים שעפה במבנה","שילוט שמכוון קבוצה בלי מילים"]],
+  ask:["מי מרגיש לבד, או בחוץ?","מי מתקשה להשתמש במשהו שאחרים לא שמים לב אליו?","בין אילו קבוצות אין היום שיחה?"],
+  terms:["עיצוב מכליל","נגישות","שייכות","בדידות","פער בין-דורי"],
+  look:"ספסל, תחנה, חדר המתנה, חצר בית הספר. מי יושב עם מי, ומי נשאר בצד.",
+  q:"מה גורם לאנשים להרגיש שייכים ב[מקום או קבוצה]?",
+  words:["עיצוב מכליל","נגישות","inclusive design","design for loneliness"],
+  src:[["נגישות ישראל","https://www.aisrael.org","מידע בעברית על נגישות ועל אנשים עם מוגבלות."],["כל זכות","https://www.kolzchut.org.il","זכויות בשפה פשוטה. מי זכאי למה."]]},
+ {id:"zmanim", name:"חיבורים בין זמנים", line:"טכנולוגיה של היום שמחיה מלאכה, זיכרון ומורשת.", field:"היסטוריה", teacher:"המורה להיסטוריה",
+  ex:[["רקמה מסורתית מהבית של סבתא","דגם דיגיטלי, לוגו, טקסטיל"],["תצלומים ישנים של העיר","מסלול או שילוט שמספר מה היה כאן"],["כלי עבודה שאף אחד כבר לא משתמש בו","מוצר שמחזיר את הפעולה בצורה חדשה"]],
+  ask:["איזו מלאכה או מסורת נעלמת?","איזה סיפור משפחתי או מקומי אף אחד לא מספר?","מה צעירים לא יודעים על המקום שהם חיים בו?"],
+  terms:["מורשת","ציר זמן","מלאכת יד","זיכרון קולקטיבי","ארכיון","מקור ראשוני"],
+  look:"חפץ ישן מהבית, תצלום משפחתי, בניין ותיק. מתי נוצר, ממה, ואיך השתמשו בו.",
+  q:"איך [המלאכה או המקום] השתנה מאז [שנה]?",
+  words:["היסטוריה של [המקום]","ארכיון תצלומים","heritage design","craft revival"],
+  src:[["הספרייה הלאומית","https://www.nli.org.il","ארכיונים, תצלומים, עיתונים ישנים ומפות."],["ראיון עם המבוגרים במשפחה","","מקור ראשוני. מבקשים אישור להקליט ולצטט."]]},
+ {id:"urbani", name:"חיבור אורבני", line:"עיצוב לשיפור החיים במרחב הציבורי.", field:"גיאוגרפיה · תכנון ערים", teacher:"המורה לגיאוגרפיה",
+  ex:[["שביל שנשחק בדשא במקום שבו אנשים באמת הולכים","שילוט או מסלול לפי איך שאנשים זזים"],["עץ שנותן צל ומושך אליו אנשים","פינת ישיבה בחצר"],["נמלים מסמנות דרך לחברות","סימון התמצאות בבניין גדול"]],
+  ask:["איפה קשה להתמצא?","איזה מקום ציבורי ריק, ולמה?","איפה חם מדי, רועש מדי או לא בטוח?"],
+  terms:["מרחב ציבורי","התמצאות (wayfinding)","שביל רצוי","אקלים עירוני","ריהוט רחוב"],
+  look:"תחנת אוטובוס, כניסה לבית הספר, פארק בשכונה. מתבוננים 20 דקות: מי עובר, איפה עוצרים.",
+  q:"מה אנשים עושים ב[מקום], ומה המקום לא מאפשר להם?",
+  words:["מרחב ציבורי","שילוט התמצאות","placemaking","wayfinding design","desire path"],
+  src:[["Project for Public Spaces","https://www.pps.org","איך הופכים מרחב ציבורי למקום שאנשים רוצים להיות בו. באנגלית."],["ArchDaily","https://www.archdaily.com","פרויקטים של אדריכלות ומרחב ציבורי, עם צילומים."]]},
+ {id:"mekayem", name:"חיבורים מקיימים", line:"מחזור חיי המוצר, שיקום חומרים, פחות פסולת.", field:"מדעי הסביבה · כימיה", teacher:"המורה לביולוגיה, לכימיה או למדעי הסביבה",
+  ex:[["ביער אין פסולת: כל דבר הופך למזון","אריזה שחוזרת או מתפרקת"],["צמח שמפיץ זרעים ברוח","מוצר שמתפרק לחלקים שממחזרים"],["שורשים שמחזיקים קרקע","מבנה זמני שלא משאיר סימן"]],
+  ask:["מה נזרק אחרי שימוש אחד?","איזה חומר נשאר בעולם הרבה אחרי שהמוצר נגמר?","מה אפשר לתקן במקום לקנות מחדש?"],
+  terms:["מחזור חיים של מוצר","כלכלה מעגלית","אפסייקלינג","חומר מתכלה","טביעת רגל"],
+  look:"פח בית הספר בסוף יום. מה יש בו, כמה, וממה זה עשוי.",
+  q:"מה קורה ל[מוצר] אחרי שזורקים אותו?",
+  words:["כלכלה מעגלית","מחזור חיים של מוצר","circular design","upcycling"],
+  src:[["Ellen MacArthur Foundation","https://www.ellenmacarthurfoundation.org","הסברים ודוגמאות לכלכלה מעגלית. באנגלית."],["Our World in Data","https://ourworldindata.org","נתונים על פסולת ופלסטיק, עם מקורות."]]},
+ {id:"hashmal", name:"חיבור מחשמל", line:"אלקטרוניקה, אור, אנרגיה מהשמש ועיצוב.", field:"פיזיקה · אלקטרוניקה", teacher:"המורה לפיזיקה או לאלקטרוניקה",
+  ex:[["חמנייה שפונה אל השמש","מטען סולארי שמסתובב לבד"],["גחלילית שמאירה בלי חום","תאורת לילה רכה"],["חיישן שמגיב למגע או לקרבה","מוצר שמודיע למשתמש מה קורה"]],
+  ask:["מה צריך חשמל, ואין שם שקע?","איפה חושך מפריע או מפחיד?","מה המשתמש לא יודע, ומוצר יכול להראות לו?"],
+  terms:["מעגל חשמלי","חיישן","נורת LED","אנרגיה סולארית","משוב למשתמש"],
+  look:"מנורת רחוב, מטען, כפתור במעלית. מה מפעיל אותו, ומה הוא מראה למשתמש.",
+  q:"איך [מכשיר] יודע מתי להידלק?",
+  words:["אנרגיה סולארית","חיישנים בחיי היום יום","interactive light design","solar product design"],
+  src:[["PhET: מעגלים חשמליים","https://phet.colorado.edu","בונים מעגל בהדמיה, בלי חומרים."],["Instructables","https://www.instructables.com","מדריכים לבנייה, באנגלית. השראה בלבד."]],
+  note:"זה פרויקט עיצוב, לא הנדסה. מודל והדמיה שמראים איך זה יעבוד מספיקים."},
+ {id:"ezrahi", name:"חיבור אזרחי", line:"הנגשת זכויות, שקיפות ופרטיות.", field:"אזרחות", teacher:"המורה לאזרחות",
+  ex:[["זכות שקיימת, אבל אנשים לא יודעים עליה","כרזה או מדריך בשפה פשוטה"],["חלון חלבי: מכניס אור ומסתיר","עיצוב שמגן על פרטיות"],["טופס ארוך ומפחיד","מסלול חזותי צעד אחר צעד"]],
+  ask:["מי לא מקבל משהו שמגיע לו, כי הוא לא יודע?","איזה מידע מוסתר או מסובך מדי?","איפה הפרטיות של בני נוער לא נשמרת?"],
+  terms:["זכויות","שפה פשוטה","הנגשת מידע","פרטיות","שקיפות"],
+  look:"טופס רשמי, תנאי שימוש של אפליקציה, שלט במשרד ממשלתי. מה לא מובן, ולמי.",
+  q:"מה מגיע ל[קהל היעד], ולמה הם לא יודעים על זה?",
+  words:["זכויות בני נוער","שפה פשוטה","plain language design","privacy by design"],
+  src:[["כל זכות","https://www.kolzchut.org.il","זכויות בשפה פשוטה. דוגמה טובה להנגשת מידע."]]},
+ {id:"mishaki", name:"חיבור משחקי", line:"מכניקה של משחק לפתרון בעיות וללמידה.", field:"פסיכולוגיה · מדעי המחשב", teacher:"המורה לפסיכולוגיה או למדעי המחשב",
+  ex:[["משחק הזיכרון: זוגות שמתגלים","למידת מילים לעולים חדשים"],["ניקוד ושלבים","הרגל של מיחזור בכיתה"],["משחק שיתופי: כולם מנצחים או מפסידים יחד","פעילות שמחברת בין דורות"]],
+  ask:["מה משעמם, אבל חייבים לעשות?","מה קשה ללמוד או לזכור?","איפה אנשים לא משתפים פעולה?"],
+  terms:["מכניקת משחק","חוקים","תגמול","אתגר מול מיומנות","משחוק (גיימיפיקציה)"],
+  look:"משחק קופסה בבית. מה גורם לרצות עוד תור? מה החוק הכי פשוט בו?",
+  q:"מה גורם לאנשים להמשיך לשחק ב[משחק]?",
+  words:["משחוק בלמידה","משחק שיתופי","gamification design","serious games","game mechanics"],
+  src:[["Dezeen","https://www.dezeen.com","חפשו game design ו-play. פרויקטים עם צילומים."]]},
+];
+const COMMON_SRC = [["Dezeen","https://www.dezeen.com","עיצוב מוצר, גרפי ואדריכלות."],["designboom","https://www.designboom.com","פרויקטים מכל העולם, עם קרדיט למעצב."],["ArchDaily","https://www.archdaily.com","אדריכלות ומרחב."]];
+
+/* ---------- helpers ---------- */
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store = {
+  get(){try{return JSON.parse(localStorage.getItem("mh-tik")||"{}")}catch(e){return {}}},
+  set(v){try{localStorage.setItem("mh-tik",JSON.stringify(v))}catch(e){}}
+};
+const hrs = h => h ? (h===0.5?"חצי שעה":h===1?"שעה":h===1.5?"שעה וחצי":h+" שעות") : "לאורך הדרך";
+const cv = k => `--c:var(${STAGES[k].c})`;
+const fill = s => esc(s).replace(/\[([^\]]+)\]/g,'<span class="fill">[$1]</span>');
+let pn = 0;
+function promptBox(pr){
+  const id = "pr"+(pn++);
+  return `<div class="prompt"><header><div><b>פרומפט: ${esc(pr.t)}</b><span>ל${AI_TOOLS}. ${esc(pr.why)} מחליפים את מה שבסוגריים המרובעים.</span></div>
+  <button class="copy" type="button" data-copy="${id}">העתקה</button></header><p id="${id}">${fill(pr.p)}</p></div>`;
+}
+function kicker(k, text){ return `<div class="kicker" style="${cv(k)}">${esc(text)}</div>`; }
+
+/* ---------- views ---------- */
+function vHome(){
+  return `
+  ${kicker("open","פרויקט הגמר · יב תשפ״ז")}
+  <h1>מעבדת חיבורים</h1>
+  <p class="lead">האתר הולך לצד מצגת המחקר שלכם ולא מחליף אותה. בכל שלב כתוב כאן מה חייב להופיע בכל שקף, כמה זמן זה לוקח, ואיך נראה שקף גמור. לכל אחד מ-11 החיבורים יש עמוד עם מושגים, דוגמאות ומקורות.</p>
+  <section>
+    <h2>הנוסחה של הפרויקט</h2>
+    <div class="link3">
+      <div style="--c:var(--harish)"><i></i><b>בעיה מהחיים</b><span>בעיה אמיתית שמישהו סובל ממנה</span></div>
+      <div style="--c:var(--hibur)"><i></i><b>ידע מתחום אחר</b><span>טבע, מדע, מתמטיקה, חברה, היסטוריה</span></div>
+      <div style="--c:var(--hanza)"><i></i><b>פתרון עיצובי</b><span>מוצר או עיצוב גרפי שנשען על הידע</span></div>
+    </div>
+  </section>
+  <section class="cards2">
+    <a href="#tik" style="--c:var(--harish)"><b>מלווה לתיק</b><span>שקף אחרי שקף: מה חייב להופיע, כמה זמן, ומה רואים בתיק גמור.</span></a>
+    <a href="#ashaf" style="--c:var(--hibur)"><b>יומן אש״ף</b><span>איך ממלאים את נספח הבינה המלאכותית (שקף 52) כך שרואים את ההחלטות שלכם.</span></a>
+  </section>
+  <section>${vIndex()}</section>`;
+}
+function vIndex(){
+  return `<h2>11 סוגי החיבורים</h2>
+  <p class="note" style="margin-bottom:18px">מתוך מסמך הנושא השנתי של הפיקוח. הם דוגמאות, לא רשימה סגורה. בוחרים שניים-שלושה בשקף 13, ואחד בסוף החריש.</p>
+  <ol class="index">${HIBURIM.map((h,i)=>`<li><a href="#${h.id}"><span class="n">${String(i+1).padStart(2,"0")}</span><b>${h.name}</b><p class="d">${esc(h.line)}</p></a></li>`).join("")}
+  <li><a href="#tik"><span class="n">+</span><b>חיבור משלכם</b><p class="d">אפשר להציע חיבור אחר, או לחבר שניים. מדברים על זה עם המורה לפני שקף 16.</p></a></li></ol>`;
+}
+function vTik(){
+  const st = store.get();
+  const all = TIK.flatMap(s=>s.items.map(i=>i[0]));
+  return `
+  <div class="crumb"><a href="#home">הבית</a> · מלווה לתיק</div>
+  ${kicker("open","שקף אחרי שקף")}
+  <h1>מלווה לתיק הפרויקט</h1>
+  <p class="lead">הכול לפי סדר השקפים במצגת המחקר (54 שקפים). מספר השקף הוא המספר שרואים בצד של גוגל סליידס. ליד כל משימה כתוב כמה זמן היא לוקחת בשיעור.</p>
+  <h2>ארבעה כללים לבינה מלאכותית</h2>
+  <ol class="rules">
+    <li><span>עובדים רק עם ${AI_TOOLS}.</span></li>
+    <li><span>הבינה היא כלי לרעיונות ולשאלות, לא מקור מידע. כל נתון צריך מקור שאפשר לבדוק.</span></li>
+    <li><span>בנביטה הבינה לא מציעה רעיונות. היא רק שואלת.</span></li>
+    <li><span>בסוף כל שלב ממלאים ״הצהרת בינה מלאכותית״. את הפירוט רושמים בשקף 52, לפי <a href="#ashaf">יומן אש״ף</a>.</span></li>
+  </ol>
+  <div class="label"><span id="done">${all.filter(i=>st[i]).length}</span> מתוך ${all.length} משימות סומנו</div>
+  <div class="dots" id="dots" aria-hidden="true">${all.map(i=>`<i data-d="${i}" class="${st[i]?"on":""}"></i>`).join("")}</div>
+  <div class="legend"><span><span class="tagx">שקף הסבר</span> נמחק לפני ההגשה</span><span><span class="tagx">לנספחים</span> בתיק המוגש עובר לנספחים</span><span>הסימון נשמר רק בדפדפן הזה</span></div>
+  ${TIK.map(s=>`
+  <div class="stage" id="st-${s.key}" data-st="${s.key}" style="${cv(s.key)}">
+    <div class="kicker">${esc(STAGES[s.key].name)} · ${esc(STAGES[s.key].sub)}</div>
+    <h2>${esc(s.title.replace(/^[^:]+: /,""))}</h2>
+    <div class="facts">
+      <div><div class="label">מה צריך לדעת?</div><p>${esc(s.know)}</p></div>
+      <div><div class="label">מה מחפשים?</div><p>${esc(s.look)}</p></div>
+      <div><div class="label">מתי</div><p>${esc(s.weeks)}</p></div>
+      <div><div class="label">היקף וזמן</div><p>${esc(s.scope)}. ${hrs(s.items.reduce((a,i)=>a+i[4],0))} בשיעור.</p></div>
+    </div>
+    ${s.rule?`<div class="stop"><b>שימו לב: </b>${esc(s.rule)}</div>`:""}
+    <ul class="tasks">${s.items.map(([id,sn,t,d,h,k])=>`<li><label for="c-${id}"><input type="checkbox" id="c-${id}" data-id="${id}" ${st[id]?"checked":""}>
+      <span class="sn">${sn==="—"?"בסוף":"שקף "+sn}</span>
+      <span class="tt"><b>${esc(t)}</b>${k==="x"?'<span class="tagx">שקף הסבר</span>':k==="n"?'<span class="tagx">לנספחים</span>':""}<p>${esc(d)}</p></span>
+      <span class="hrs">${hrs(h)}</span></label></li>`).join("")}</ul>
+    ${s.see?`<div class="mark"><div class="label">מה רואים בתיק</div><p>${esc(s.see)}</p></div>`:""}
+    ${s.milestone?`<div class="mark"><div class="label">${esc(s.milestone[0])}</div><p>${esc(s.milestone[1])}</p></div>`:""}
+    ${s.extra?`<div class="mark"><div class="label">לכל חיבור</div><p>${esc(s.extra)} <a href="#hiburim">לעמודי החיבורים</a></p></div>`:""}
+    ${s.after?`<div class="mark"><div class="label">ומה אחר כך</div><p>${esc(s.after)}</p></div>`:""}
+    ${s.prompt?promptBox(s.prompt):""}
+  </div>`).join("")}`;
+}
+function vAshaf(){
+  return `
+  <div class="crumb"><a href="#home">הבית</a> · יומן אש״ף</div>
+  ${kicker("hibur","נספח הבינה המלאכותית · שקף 52")}
+  <h1>יומן אש״ף</h1>
+  <p class="lead">היום כל אחד יכול לקבל מבינה מלאכותית עשרה רעיונות בשנייה. מה שהופך אתכם למעצבים הוא ההחלטות: מה לקחתם, מה שיניתם, מה זרקתם, ולמה. היומן ממלא את העמודה ״מה לקחנו, ולמה?״ בשקף 52. לא מוסיפים שקף.</p>
+  <div class="ashaf">
+    <div><b>א</b><strong>אימצנו</strong><p>לקחנו את ההצעה כמו שהיא, ואנחנו יודעים להסביר למה היא מתאימה.</p></div>
+    <div><b>ש</b><strong>שינינו</strong><p>לקחנו חלק, או התאמנו אותה לקהל היעד שלנו.</p></div>
+    <div><b>פ</b><strong>פסלנו</strong><p>החלטנו שלא. כאן בדיוק כותבים למה.</p></div>
+  </div>
+  <section>
+    <h2>מה רושמים?</h2>
+    <p style="max-width:66ch;margin-bottom:14px">רק רגעים שבהם הצעה הזיזה החלטה. ההצעה יכולה להגיע מכל מקום, ולכן מסמנים את המקור:</p>
+    <div class="srcs"><span><i style="background:var(--a-human)"></i>אדם: מרואיין, מורה, מומחה, משפחה</span><span><i style="background:var(--a-ai)"></i>בינה מלאכותית</span><span><i style="background:var(--a-search)"></i>חיפוש ומקורות</span><span><i style="background:var(--a-noai)"></i>בחרנו בלי בינה</span></div>
+    <div class="tw"><table><thead><tr><th>שלב</th><th>מאיפה זה הגיע</th><th>מה הוצע</th><th>מה עשינו</th><th>למה</th></tr></thead><tbody>
+      <tr><td>חריש</td><td class="src a">בינה מלאכותית</td><td>חמישה כיוונים (שקף 15). אחד מהם: בדידות של קשישים בשכונה.</td><td>שינינו</td><td>בשכונה שלנו ראינו שדווקא בני נוער עולים חדשים לבד. שינינו את קהל היעד.</td></tr>
+      <tr><td>זריעה</td><td class="src h">מרואיינת מקהל היעד</td><td>״הבעיה היא לא השפה. זה שאני מתביישת לשאול.״</td><td>שינינו</td><td>שאלת האתגר עברה מ״ללמוד עברית מהר יותר״ ל״לשאול בלי מבוכה״.</td></tr>
+      <tr><td>חקר החיבור</td><td class="src s">חיפוש: כתבה על רשתות שורשים</td><td>עצים ותיקים מעבירים מזון לצעירים.</td><td>אימצנו</td><td>זה העיקרון שלנו בשקף 36: תהליך, לא צורה.</td></tr>
+      <tr><td>נביטה</td><td class="src n">בחרנו בלי בינה</td><td>שרטטנו 24 רעיונות ביד, עם טיימר.</td><td>—</td><td>רצינו שהרעיונות יהיו שלנו לפני שנשמע הצעות של אחרים.</td></tr>
+      <tr><td>נביטה</td><td class="src a">בינה מלאכותית</td><td>שאלה: איך הרעיון מממש את החיבור לביולוגיה?</td><td>פסלנו רעיון</td><td>לא הצלחנו לענות. ברעיון 7 לא היה חיבור אמיתי.</td></tr>
+    </tbody></table></div>
+    <p class="note">הדוגמאות להמחשה בלבד. אפשר לנהל את היומן כטבלה בשקף 52, או כדף בכתב יד מצולם. מה שחשוב הן שלוש העמודות האחרונות.</p>
+  </section>
+  <section>
+    <h2>גם ״בלי בינה״ זו החלטה</h2>
+    <p style="max-width:66ch">שרטטתם ביד לפני שפתחתם מסך? ראיינתם אדם אמיתי במקום לבקש מהבינה לדמיין את קהל היעד? רשמו את זה ביומן, עם משפט אחד: למה הדרך הזו מתאימה לשלב הזה. ביום הבחינה הבוחן ישאל מה ביקשתם מהכלי ולמה. היומן הוא התשובה.</p>
+  </section>
+  <section>
+    <h2>לפני שמדביקים משהו לבינה</h2>
+    <ul class="plain">
+      <li>מורידים שמות, כתובות, טלפונים ופרטים שאפשר לזהות מהם מישהו. במקום ״רותי בת 67 ממעלה אדומים״ כותבים ״מרואיינת בשנות השישים״.</li>
+      <li>לפני ראיון מבקשים אישור על שלושה דברים: להקליט, לצטט ולצלם. רושמים את האישור בנספחים, ליד השאלון.</li>
+      <li>לא מעלים תמונות של אנשים בלי שהסכימו.</li>
+    </ul>
+    ${promptBox({t:"שאלות על היומן, לפני הרפלקציה", why:"הבינה שואלת. את הרפלקציה כותבים לבד.", p:"זה יומן ההחלטות שלנו מפרויקט גמר בעיצוב: [היומן]. אל תכתוב לנו רפלקציה. שאל אותנו שלוש שאלות שיעזרו לנו לראות איפה סמכנו על הבינה יותר מדי, ואיפה השיקול שלנו שינה את התוצאה."})}
+  </section>`;
+}
+function vHibur(h){
+  const i = HIBURIM.indexOf(h), prev = HIBURIM[i-1], next = HIBURIM[i+1];
+  return `
+  <div class="crumb"><a href="#home">הבית</a> · <a href="#hiburim">11 החיבורים</a> · ${h.name}</div>
+  ${kicker("hibur","חיבור "+(i+1)+" מתוך 11 · "+h.field)}
+  <h1>${h.name}</h1>
+  <p class="lead">${esc(h.line)}${h.note?" "+esc(h.note):""}</p>
+  <section style="--c:var(--hibur)">
+    <h2>איך נראה החיבור?</h2>
+    <p class="note" style="margin-bottom:12px">מתבוננים במשהו מהתחום, מבינים איך הוא עובד, ומתרגמים לעיצוב. כמו בשקף 6.</p>
+    ${h.ex.map(([a,b])=>`<div class="pair"><div><small>מה מתבוננים</small>${esc(a)}</div><span class="wire" aria-hidden="true"></span><div><small>מה מעצבים בעקבות זה</small>${esc(b)}</div></div>`).join("")}
+  </section>
+  <section class="grid2">
+    <div style="--c:var(--harish)"><h3 class="c">איפה מחפשים בעיה?</h3><div class="where">חריש · שקפים 16-18</div><ul>${h.ask.map(a=>`<li>${esc(a)}</li>`).join("")}</ul></div>
+    <div style="--c:var(--hibur)"><h3 class="c">מושגים ללמוד</h3><div class="where">חקר החיבור · שקף 34. ליד כל מושג: מקור</div><div class="words">${h.terms.map(t=>`<span>${esc(t)}</span>`).join("")}</div>
+      <p style="margin-top:12px"><b style="font-weight:500">עם מי מדברים:</b> ${esc(h.teacher)}, או מומחה מחוץ לבית הספר.</p></div>
+    <div style="--c:var(--hibur)"><h3 class="c">במה מתבוננים?</h3><div class="where">חקר החיבור · שקף 35</div><p>${esc(h.look)}</p><p class="note" style="margin-top:8px">שאלה לפתיחה: ${esc(h.q)}</p></div>
+    <div><h3>מילות חיפוש</h3><div class="where">שקפים 19, 29 ו-37-39</div><div class="words">${h.words.map(t=>`<span>${esc(t)}</span>`).join("")}</div></div>
+  </section>
+  <section>
+    <h2>מקורות לפתיחה</h2>
+    <p class="note" style="margin-bottom:6px">נקודת התחלה בלבד. את המקורות שלכם מוצאים לבד, וכל אחד נכנס לביבליוגרפיה (שקף 50).</p>
+    <ul class="srclist">${h.src.map(([n,u,d])=>`<li>${u?`<a href="${u}" target="_blank" rel="noopener">${esc(n)}</a>`:`<b>${esc(n)}</b>`}<span>${esc(d)}</span></li>`).join("")}</ul>
+    <h3 style="margin-top:26px">לשלושת הפרויקטים לדוגמה (שקפים 37-39)</h3>
+    <ul class="srclist">${COMMON_SRC.map(([n,u,d])=>`<li><a href="${u}" target="_blank" rel="noopener">${n}</a><span>${d} חפשו את מילות החיפוש באנגלית.</span></li>`).join("")}</ul>
+    ${promptBox({t:"מושגים לפני השיחה עם המומחה", why:"הבינה שואלת מה אתם יודעים. את הידע עצמו מביאים ממקור.",
+      p:`אנחנו זוג תלמידים במגמת עיצוב. החיבור שבחרנו: ${h.name}, ותחום הדעת: ${h.field}. האתגר שלנו: [שאלת האתגר]. אל תסביר לנו את התחום ואל תציע פתרונות. שאל אותנו ארבע שאלות שיראו לנו אילו מושגים מהתחום אנחנו צריכים ללמוד, כדי שנחפש אותם בעצמנו במקורות.`})}
+  </section>
+  <div class="pn">${next?`<a href="#${next.id}">→ ${next.name}</a>`:"<span></span>"}${prev?`<a href="#${prev.id}">${prev.name} ←</a>`:"<span></span>"}</div>`;
+}
+function vHiburim(){
+  return `<div class="crumb"><a href="#home">הבית</a> · 11 החיבורים</div>
+  ${kicker("hibur","חקר החיבור")}
+  <h1>11 החיבורים</h1>
+  <p class="lead">לכל חיבור: איך הוא נראה, איפה מחפשים בעיה, מושגים ללמוד, במה מתבוננים, מילות חיפוש ומקורות לפתיחה.</p>${vIndex()}`;
+}
+
+/* ---------- stage path in the rail ---------- */
+function buildPath(){
+  $("#path").innerHTML = TIK.map(s=>`<li><a href="#tik" data-go="${s.key}" style="${cv(s.key)}"><i></i>${esc(STAGES[s.key].name==="זריעה"&&s.key==="hibur"?"חקר החיבור":STAGES[s.key].name==="תיק"?"סגירת התיק":STAGES[s.key].name)}<small>${s.items.length}</small></a></li>`).join("");
+}
+function setOn(key){ document.querySelectorAll("#path a").forEach(a=>a.classList.toggle("on",a.dataset.go===key)); }
+let spy, goTo = null;
+function watch(){
+  if(spy) spy.disconnect();
+  const st = document.querySelectorAll(".stage"); if(!st.length || !("IntersectionObserver" in window)) return;
+  spy = new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting) setOn(e.target.dataset.st); }); },{rootMargin:"-30% 0px -60% 0px"});
+  st.forEach(s=>spy.observe(s));
+}
+
+/* ---------- router ---------- */
+function render(){
+  const r = (location.hash||"#home").slice(1);
+  const h = HIBURIM.find(x=>x.id===r);
+  pn = 0;
+  $("#app").innerHTML = h ? vHibur(h) : r==="tik" ? vTik() : r==="ashaf" ? vAshaf() : r==="hiburim" ? vHiburim() : vHome();
+  const nav = h ? "hiburim" : (["tik","ashaf","hiburim"].includes(r)?r:"home");
+  document.querySelectorAll(".links a").forEach(a=>{ if(a.dataset.r===nav) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  document.title = (h?h.name+" · ":r==="tik"?"מלווה לתיק · ":r==="ashaf"?"יומן אש״ף · ":"") + "מעבדת חיבורים";
+  setOn(h||r==="hiburim" ? "hibur" : null);
+  if(r==="tik"){ watch(); if(goTo){ const el=$("#st-"+goTo); goTo=null; if(el){ el.scrollIntoView(); return; } } }
+  window.scrollTo(0,0);
+}
+document.addEventListener("click",e=>{
+  const g = e.target.closest("[data-go]");
+  if(g){ e.preventDefault(); const k=g.dataset.go;
+    if((location.hash||"#home")==="#tik"){ $("#st-"+k).scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"}); }
+    else { goTo=k; location.hash="tik"; }
+    return; }
+  const b = e.target.closest(".copy"); if(!b) return;
+  const p = document.getElementById(b.dataset.copy);
+  const ok = ()=>{ b.textContent="הועתק"; setTimeout(()=>b.textContent="העתקה",1600); };
+  const sel = ()=>{ const rg=document.createRange(); rg.selectNodeContents(p); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); b.textContent="מסומן, העתיקו"; };
+  try{ navigator.clipboard.writeText(p.textContent).then(ok,sel); }catch(err){ sel(); }
+});
+document.addEventListener("change",e=>{
+  const id = e.target.dataset && e.target.dataset.id; if(!id) return;
+  const st = store.get(); if(e.target.checked) st[id]=1; else delete st[id]; store.set(st);
+  const d = document.querySelector(`#dots [data-d="${id}"]`); if(d) d.classList.toggle("on",e.target.checked);
+  $("#done").textContent = document.querySelectorAll(".tasks input:checked").length;
+});
+addEventListener("hashchange",render);
+buildPath();
+render();
+</script>
+
+</body>
+</html>
